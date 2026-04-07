@@ -1,26 +1,27 @@
 const express = require('express');
 const { authenticate } = require('../middleware/authenticate');
 const { requireAnyRole } = require('../middleware/authorize');
-const { ensureProfileAccess, ensureSelfOrAdmin } = require('../middleware/ownership');
 const adminController = require('../controllers/adminController');
-const profileController = require('../controllers/profileController');
 const { ROLES } = require('../config/constants');
 
 const router = express.Router();
 
 router.use(authenticate, requireAnyRole(ROLES.ADMIN));
 
+router.get('/rbac/roles', adminController.listRoles);
 router.get('/roles', adminController.listRoles);
+
 router.get('/users', adminController.listUsersWithRoles);
-router.get('/users/:userId', ensureProfileAccess, profileController.getUserById);
-router.post('/users', profileController.createUser);
-router.patch('/users/:userId', ensureSelfOrAdmin, profileController.updateUserById);
-router.patch('/users/:userId/status', ensureSelfOrAdmin, (req, res) => {
-  const status = req.body.status || 'active';
-  const updated = require('../data/store').setUserStatus(req.params.userId, status);
-  return res.json({ profile: require('../data/store').withoutPassword(updated) });
-});
-router.post('/users/:userId/roles', ensureSelfOrAdmin, adminController.assignRole);
-router.delete('/users/:userId/roles/:role', ensureSelfOrAdmin, adminController.removeRole);
+router.get('/users/:userId', adminController.getUserById);
+router.post('/users', adminController.createUser);
+router.put('/users/:userId', adminController.updateUser);
+router.patch('/users/:userId', adminController.updateUser);
+router.put('/users/:userId/status', adminController.updateUserStatus);
+router.patch('/users/:userId/status', adminController.updateUserStatus);
+
+router.put('/rbac/users/:userId/roles', adminController.replaceUserRoles);
+
+router.post('/users/:userId/roles', adminController.assignRole);
+router.delete('/users/:userId/roles/:role', adminController.removeRole);
 
 module.exports = router;

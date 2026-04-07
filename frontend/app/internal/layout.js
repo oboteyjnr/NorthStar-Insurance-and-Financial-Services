@@ -4,6 +4,7 @@ import PortalLayout from '../../components/PortalLayout';
 
 const links = [
   { href: '/internal', label: 'Dashboard' },
+  { href: '/profile', label: 'My Profile' },
   { href: '/internal/policies', label: 'Policy management' },
   { href: '/internal/amendments', label: 'Amendments' },
   { href: '/internal/reductions', label: 'Reductions' },

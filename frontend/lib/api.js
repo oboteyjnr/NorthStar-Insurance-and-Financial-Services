@@ -51,7 +51,11 @@ export function getMyProfile(token) {
 }
 
 export function updateMyProfile(token, body) {
-  return request('/profile/me', { method: 'PATCH', token, body });
+  return request('/profile/me', { method: 'PUT', token, body });
+}
+
+export function suspendMyProfile(token) {
+  return request('/profile/me/suspend', { method: 'PATCH', token });
 }
 
 export function listUsers(token) {
@@ -67,11 +71,11 @@ export function createUser(token, body) {
 }
 
 export function updateUser(token, userId, body) {
-  return request(`/admin/users/${userId}`, { method: 'PATCH', token, body });
+  return request(`/admin/users/${userId}`, { method: 'PUT', token, body });
 }
 
 export function toggleUserStatus(token, userId, status) {
-  return request(`/admin/users/${userId}/status`, { method: 'PATCH', token, body: { status } });
+  return request(`/admin/users/${userId}/status`, { method: 'PUT', token, body: { status } });
 }
 
 export function listRoles(token) {
@@ -84,6 +88,10 @@ export function assignRole(token, userId, role) {
 
 export function removeRole(token, userId, role) {
   return request(`/admin/users/${userId}/roles/${encodeURIComponent(role)}`, { method: 'DELETE', token });
+}
+
+export function replaceRoles(token, userId, roles) {
+  return request(`/admin/rbac/users/${userId}/roles`, { method: 'PUT', token, body: { roles } });
 }
 
 export function listPolicies(token) {

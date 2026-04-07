@@ -22,8 +22,37 @@ function getOwnProfile(req, res) {
   return res.json({ profile: store.withoutPassword(user) });
 }
 
+function isValidEmail(value) {
+  if (!value) {
+    return true;
+  }
+
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value));
+}
+
+function isValidPhone(value) {
+  if (!value) {
+    return true;
+  }
+
+  return /^[+()\-\s0-9]{7,20}$/.test(String(value));
+}
+
 function updateOwnProfile(req, res) {
   const currentUser = store.getUserById(req.user.userId);
+
+  if (!currentUser) {
+    return res.status(404).json({ message: 'Profile not found.' });
+  }
+
+  if (req.body.email !== undefined && !isValidEmail(req.body.email)) {
+    return res.status(400).json({ message: 'Invalid email format.' });
+  }
+
+  if (req.body.phoneNumber !== undefined && !isValidPhone(req.body.phoneNumber)) {
+    return res.status(400).json({ message: 'Invalid phone number format.' });
+  }
+
   const updates = {};
 
   editableFields.forEach((field) => {
@@ -34,6 +63,24 @@ function updateOwnProfile(req, res) {
 
   store.updateUser(currentUser.userId, updates);
   return res.json({ profile: store.withoutPassword(store.getUserById(currentUser.userId)) });
+}
+
+function suspendOwnProfile(req, res) {
+  const currentUser = store.getUserById(req.user.userId);
+
+  if (!currentUser) {
+    return res.status(404).json({ message: 'Profile not found.' });
+  }
+
+  if ((currentUser.roles || []).includes(ROLES.ADMIN)) {
+    return res.status(403).json({ message: 'Admin accounts cannot self-suspend.' });
+  }
+
+  const updated = store.setUserStatus(currentUser.userId, 'suspended');
+  return res.json({
+    message: 'Account suspended. Please sign in through an administrator to reactivate.',
+    profile: store.withoutPassword(updated)
+  });
 }
 
 function listUsers(req, res) {
@@ -115,6 +162,7 @@ function createUser(req, res) {
 module.exports = {
   getOwnProfile,
   updateOwnProfile,
+  suspendOwnProfile,
   listUsers,
   getUserById,
   updateUserById,
